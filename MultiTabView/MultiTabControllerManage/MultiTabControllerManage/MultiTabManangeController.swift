@@ -10,9 +10,10 @@ import UIKit
 
 @objc (MultiTabManangeControllerDataSource)
 public protocol MultiTabManangeControllerDataSource:NSObjectProtocol {
-    optional func headItemView(multiTabView:UIViewController, forIndex:NSInteger) -> UIView
+    optional func heightForHeadView(multiTabView:UIViewController) -> CGFloat
+    optional func headItemView(multiTabView:UIViewController, index:NSInteger, frame:CGRect) -> UIView
     optional func numberOfHeadItems(multiTabView:UIViewController) -> NSInteger
-    optional func viewController(multiTabView:UIViewController, forIndex:NSInteger) -> UIViewController
+    optional func viewController(multiTabView:UIViewController, index:NSInteger) -> UIViewController
 }
 
 @objc (MultiTabManangeControllerDelegate)
@@ -23,10 +24,10 @@ public protocol MultiTabManangeControllerDelegate:NSObjectProtocol {
 class MultiTabManangeController: UIViewController {
     
 // MARK: 变量区
-    weak var datasource:MultiTabManangeControllerDataSource? = nil
-    weak var delegate:MultiTabManangeControllerDelegate? = nil
+    weak var datasource:MultiTabManangeControllerDataSource?
+    weak var delegate:MultiTabManangeControllerDelegate?
     
-    weak var superContentView:UIView? = nil
+    weak var superContentView:UIView?
     
     var headContentView:UIView!
     var bodyContentView:UIView!
@@ -35,16 +36,17 @@ class MultiTabManangeController: UIViewController {
             
         }
         didSet{
-            startShow()
-            isUseDatasurceVC = false
+            //startShow()
+            //isUseDatasurceVC = false
+            ///////setUpUI()
         }
     }
-    
     var innerItemViews:[UIView] = []
     // 默认数据
+    var headContentViewHeight:CGFloat = 50
     var itemsCount:NSInteger = 3
     var currSelectedIndex:NSInteger = 0
-    var currVC:UIViewController? = nil
+    var currVC:UIViewController?
     let configItemTAg:NSInteger = 1000
     weak var currDisplayController:UIViewController!
     var isUseDatasurceVC:Bool = true
@@ -59,7 +61,7 @@ class MultiTabManangeController: UIViewController {
     
     init() {
         super.init(nibName: nil, bundle: nil)
-        setUpUI()
+        //setUpUI()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -75,10 +77,43 @@ class MultiTabManangeController: UIViewController {
         setUpUI() /////////////
     }
     
+    func clearNoUseUI() {
+        //if ((self.datasource?.respondsToSelector(Selector(viewControllerForMultiTabView:atIndex:))) != nil) {
+            //self.controllers.removeAll()
+        //}
+        if ((self.datasource?.viewController?(self, index: 0)) != nil) {
+            self.controllers.removeAll()
+        }
+        self.innerItemViews.removeAll()
+        
+        if self.headContentView != nil {
+            self.headContentView.removeFromSuperview()
+            self.headContentView = nil
+        }
+        if self.bodyContentView != nil {
+            self.bodyContentView.removeFromSuperview()
+            self.bodyContentView = nil
+        }
+        
+        //self.headContentViewHeight = 50
+        self.itemsCount = 3
+        self.currSelectedIndex = 0
+        self.isUseDatasurceVC = true
+        self.currDisplayController = nil
+    }
     
     
     func setUpUI() -> Void {
-        self.headContentView = UIView(frame: CGRect(x: 0, y: 0, width: self.view.bounds.size.width, height: 35)) // 高度可改
+        
+        clearNoUseUI()
+        
+        //if let _:Bool = self.datasource?.respondsToSelector(Selector("heightForHeadView(_:)")) {
+            //self.headContentViewHeight = (self.datasource?.heightForHeadView?(self)) ?? 50
+        //}
+        if ((self.datasource?.heightForHeadView?(self)) != nil) {
+            self.headContentViewHeight = (self.datasource?.heightForHeadView?(self)) ?? 50
+        }
+        self.headContentView = UIView(frame: CGRect(x: 0, y: 0, width: self.view.bounds.size.width, height: self.headContentViewHeight)) // 高度可改
         self.view.addSubview(self.headContentView)
         self.headContentView.backgroundColor = UIColor.blueColor()
         
@@ -88,8 +123,11 @@ class MultiTabManangeController: UIViewController {
         self.view.addSubview(self.bodyContentView)
         self.bodyContentView.backgroundColor = UIColor.brownColor()
         
-        if let currItems = self.datasource?.numberOfHeadItems!(self) {        // 数量可改
-            self.itemsCount = currItems
+        //if let currItems = self.datasource?.numberOfHeadItems!(self) {        // 数量可改
+            //self.itemsCount = currItems
+        //}
+        if ((self.datasource?.numberOfHeadItems?(self)) != nil) {
+            self.itemsCount = (self.datasource?.numberOfHeadItems?(self))!
         }
         
         let itemX:CGFloat = 0
@@ -98,10 +136,14 @@ class MultiTabManangeController: UIViewController {
         let itemH:CGFloat = self.headContentView.bounds.size.height
         for i in 0..<self.itemsCount {
             var innerItem:UIView = UIView()    // 视图可改
-            if let _:Bool = self.datasource?.respondsToSelector(Selector("headItemView(_:, forIndex:)")) {
-                innerItem = (self.datasource?.headItemView!(self, forIndex: i))!
+            let itemFrame:CGRect = CGRect(x: CGFloat(i)*itemW + itemX, y: itemY, width: itemW, height: itemH)
+            //if let _:Bool = self.datasource?.respondsToSelector(Selector("headItemView(_:, forIndex:)")) {
+                //innerItem = (self.datasource?.headItemView!(self, index: i, frame: itemFrame))!
+            //}
+            if ((self.datasource?.headItemView?(self, index: i, frame: itemFrame)) != nil) {
+                innerItem = (self.datasource?.headItemView?(self, index: i, frame: itemFrame))!
             }
-            innerItem.frame = CGRect(x: CGFloat(i)*itemW + itemX, y: itemY, width: itemW, height: itemH)
+            innerItem.frame = itemFrame
             innerItem.layoutSubviews()
             innerItem.backgroundColor = UIColor.cyanColor()
             innerItem.tag = self.configItemTAg + i
@@ -112,8 +154,12 @@ class MultiTabManangeController: UIViewController {
             innerItem.addGestureRecognizer(tap)
             
             if isUseDatasurceVC {
-                if let _:Bool = self.datasource?.respondsToSelector(Selector("viewController(_: forIndex:)")) {      // 控制器
-                    let controller:UIViewController = (self.datasource?.viewController!(self, forIndex: i))!
+                //if let _:Bool = self.datasource?.respondsToSelector(Selector("viewController(_: forIndex:)")) {      // 控制器
+                    //let controller:UIViewController = (self.datasource?.viewController!(self, index: i))!
+                    //self.controllers.append(controller)
+                //}
+                if ((self.datasource?.viewController?(self, index: i)) != nil) {
+                    let controller:UIViewController = (self.datasource?.viewController?(self, index: i))!
                     self.controllers.append(controller)
                 }
             }
@@ -134,8 +180,11 @@ class MultiTabManangeController: UIViewController {
         changeSubVCShow(index)
         
         // 代理动作逻辑
-        if let _:Bool = self.delegate?.respondsToSelector(Selector("multiTabView(_: didSelectItemAtIndex:)")) {
-           self.delegate?.multiTabView!(self, didSelectItemAtIndex: index)
+        //if let _:Bool = self.delegate?.respondsToSelector(Selector("multiTabView(_: didSelectItemAtIndex:)")) {
+           //self.delegate?.multiTabView!(self, didSelectItemAtIndex: index)
+        //}
+        if ((self.delegate?.multiTabView?(self, didSelectItemAtIndex: index)) != nil) {
+            self.delegate?.multiTabView?(self, didSelectItemAtIndex: index)
         }
     }
 

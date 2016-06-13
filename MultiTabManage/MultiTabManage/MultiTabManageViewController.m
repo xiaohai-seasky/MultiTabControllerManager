@@ -141,30 +141,29 @@
             innerItem = [self.datasource headItemViewForMultiTabView:self withframe:itemF atIndex:i];
         }
         [innerItem setFrame:CGRectMake(i*itemW+itemX, itemY, itemW, itemH)];
-        [innerItem setNeedsLayout];
-        [innerItem layoutIfNeeded];
-        [innerItem layoutSubviews];
+//        [innerItem setNeedsLayout];
+//        [innerItem layoutIfNeeded];
+//        [innerItem layoutSubviews];
         [innerItem setBackgroundColor:[UIColor cyanColor]];
         [innerItem setTag:self.configItemTAg+i];
         [self.headContentView addSubview:innerItem];
         self.innerItemViews = self.headContentView.subviews;
-        if (i == 1) {
-            UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapItemAtIndex:)];
-            [innerItem addGestureRecognizer:tap];
-        }
-//        UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapItemAtIndex:)];
-//        [innerItem addGestureRecognizer:tap];
+        
+        UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapItemAtIndex:)];
+        [innerItem addGestureRecognizer:tap];
         
         if (self.isUseDatasurceVC) {  // 可变
             if (self.datasource != nil && [self.datasource respondsToSelector:@selector(viewControllerForMultiTabView:atIndex:)]) {
                 [self.controllers addObject:[self.datasource viewControllerForMultiTabView:self atIndex:i]];
             }
         }
-        
-        if (self.controllers.count > 0) {
-            [self startShow];
-        }
     }
+    
+    if (self.controllers.count > 0) {
+        [self startShow];
+    }
+    
+    NSLog(@"controllers count = %d", _controllers.count);
 }
 
 // 相应标签被点击的响应函数

@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "MultiTabManage/MultiTabManageViewController.m"
-            timestampString = "487075758.005208"
+            timestampString = "487079088.016272"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "92"
-            endingLineNumber = "92"
+            startingLineNumber = "112"
+            endingLineNumber = "112"
             landmarkName = "-setUpUI"
             landmarkType = "5">
          </BreakpointContent>
@@ -26,11 +26,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "MultiTabManage/MultiTabManageViewController.m"
-            timestampString = "487075758.005208"
+            timestampString = "487079088.016272"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "47"
-            endingLineNumber = "47"
+            startingLineNumber = "67"
+            endingLineNumber = "67"
             landmarkName = "-setControllers:"
             landmarkType = "5">
          </BreakpointContent>
@@ -42,11 +42,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "MultiTabManage/MultiTabManageViewController.m"
-            timestampString = "487075758.005208"
+            timestampString = "487079088.016272"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "57"
-            endingLineNumber = "57"
+            startingLineNumber = "77"
+            endingLineNumber = "77"
             landmarkName = "-showInView:"
             landmarkType = "5">
          </BreakpointContent>

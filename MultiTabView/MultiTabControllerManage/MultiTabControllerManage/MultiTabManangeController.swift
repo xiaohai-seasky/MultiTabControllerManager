@@ -8,12 +8,18 @@
 
 import UIKit
 
-@objc (MultiTabManangeControllerDataSource)
-public protocol MultiTabManangeControllerDataSource:NSObjectProtocol {
-    optional func heightForHeadView(multiTabView:UIViewController) -> CGFloat
-    optional func headItemView(multiTabView:UIViewController, index:NSInteger, frame:CGRect) -> UIView
-    optional func numberOfHeadItems(multiTabView:UIViewController) -> NSInteger
-    optional func viewController(multiTabView:UIViewController, index:NSInteger) -> UIViewController
+
+
+protocol abc {
+    
+}
+
+//@objc (MultiTabManangeControllerDataSource)
+@objc public protocol MultiTabManangeControllerDataSource: class {
+     optional func heightForHeadView(multiTabView:UIViewController) -> CGFloat
+     optional func headItemView(multiTabView:UIViewController, index:NSInteger, frame:CGRect) -> UIView
+     optional func numberOfHeadItems(multiTabView:UIViewController) -> NSInteger
+     optional func viewController(multiTabView:UIViewController, index:NSInteger) -> UIViewController
 }
 
 @objc (MultiTabManangeControllerDelegate)
@@ -140,9 +146,9 @@ class MultiTabManangeController: UIViewController {
             //if let _:Bool = self.datasource?.respondsToSelector(Selector("headItemView(_:, forIndex:)")) {
                 //innerItem = (self.datasource?.headItemView!(self, index: i, frame: itemFrame))!
             //}
-            if ((self.datasource?.headItemView?(self, index: i, frame: itemFrame)) != nil) {
-                innerItem = (self.datasource?.headItemView?(self, index: i, frame: itemFrame))!
-            }
+//            if ((self.datasource?.headItemView?(self, index: i, frame: itemFrame)) != nil) {
+//                innerItem = (self.datasource?.headItemView?(self, index: i, frame: itemFrame))!
+//            }
             innerItem.frame = itemFrame
             innerItem.layoutSubviews()
             innerItem.backgroundColor = UIColor.cyanColor()

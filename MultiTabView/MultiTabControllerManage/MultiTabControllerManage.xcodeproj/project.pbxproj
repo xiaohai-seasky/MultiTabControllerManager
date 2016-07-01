@@ -15,6 +15,8 @@
 		18A267411D056DD900068F23 /* MultiTabControllerManageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A267401D056DD900068F23 /* MultiTabControllerManageTests.swift */; };
 		18A2674C1D056DD900068F23 /* MultiTabControllerManageUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A2674B1D056DD900068F23 /* MultiTabControllerManageUITests.swift */; };
 		18A2675A1D056F1A00068F23 /* MultiTabManangeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A267591D056F1A00068F23 /* MultiTabManangeController.swift */; };
+		18F0AC681D266C9400AA5FE9 /* SimpleMultiTabManagerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F0AC671D266C9400AA5FE9 /* SimpleMultiTabManagerController.swift */; };
+		18F0AC6A1D26810A00AA5FE9 /* MyCollectionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F0AC691D26810A00AA5FE9 /* MyCollectionCell.swift */; };
 		18FF99CC1D06B4260057B083 /* TestController1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18FF99CB1D06B4260057B083 /* TestController1.swift */; };
 		18FF99CE1D06B4330057B083 /* TestController2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18FF99CD1D06B4330057B083 /* TestController2.swift */; };
 		18FF99D01D06B4440057B083 /* TestController3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18FF99CF1D06B4440057B083 /* TestController3.swift */; };
@@ -51,7 +53,9 @@
 		18A267471D056DD900068F23 /* MultiTabControllerManageUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MultiTabControllerManageUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		18A2674B1D056DD900068F23 /* MultiTabControllerManageUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiTabControllerManageUITests.swift; sourceTree = "<group>"; };
 		18A2674D1D056DD900068F23 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		18A267591D056F1A00068F23 /* MultiTabManangeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiTabManangeController.swift; sourceTree = "<group>"; };
+		18A267591D056F1A00068F23 /* MultiTabManangeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MultiTabManangeController.swift; path = ../MultiTabManangeController.swift; sourceTree = "<group>"; };
+		18F0AC671D266C9400AA5FE9 /* SimpleMultiTabManagerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleMultiTabManagerController.swift; sourceTree = "<group>"; };
+		18F0AC691D26810A00AA5FE9 /* MyCollectionCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyCollectionCell.swift; sourceTree = "<group>"; };
 		18FF99CB1D06B4260057B083 /* TestController1.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestController1.swift; sourceTree = "<group>"; };
 		18FF99CD1D06B4330057B083 /* TestController2.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestController2.swift; sourceTree = "<group>"; };
 		18FF99CF1D06B4440057B083 /* TestController3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestController3.swift; sourceTree = "<group>"; };
@@ -105,12 +109,13 @@
 		18A2672A1D056DD800068F23 /* MultiTabControllerManage */ = {
 			isa = PBXGroup;
 			children = (
+				18F0AC661D266C4C00AA5FE9 /* MultiTabManager */,
 				18A2672B1D056DD800068F23 /* AppDelegate.swift */,
 				18A2672D1D056DD800068F23 /* ViewController.swift */,
-				18A267591D056F1A00068F23 /* MultiTabManangeController.swift */,
 				18FF99CB1D06B4260057B083 /* TestController1.swift */,
 				18FF99CD1D06B4330057B083 /* TestController2.swift */,
 				18FF99CF1D06B4440057B083 /* TestController3.swift */,
+				18F0AC691D26810A00AA5FE9 /* MyCollectionCell.swift */,
 				18A2672F1D056DD800068F23 /* Main.storyboard */,
 				18A267321D056DD800068F23 /* Assets.xcassets */,
 				18A267341D056DD800068F23 /* LaunchScreen.storyboard */,
@@ -135,6 +140,15 @@
 				18A2674D1D056DD900068F23 /* Info.plist */,
 			);
 			path = MultiTabControllerManageUITests;
+			sourceTree = "<group>";
+		};
+		18F0AC661D266C4C00AA5FE9 /* MultiTabManager */ = {
+			isa = PBXGroup;
+			children = (
+				18A267591D056F1A00068F23 /* MultiTabManangeController.swift */,
+				18F0AC671D266C9400AA5FE9 /* SimpleMultiTabManagerController.swift */,
+			);
+			path = MultiTabManager;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -268,8 +282,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18F0AC681D266C9400AA5FE9 /* SimpleMultiTabManagerController.swift in Sources */,
 				18A2672E1D056DD800068F23 /* ViewController.swift in Sources */,
 				18FF99CC1D06B4260057B083 /* TestController1.swift in Sources */,
+				18F0AC6A1D26810A00AA5FE9 /* MyCollectionCell.swift in Sources */,
 				18A2672C1D056DD800068F23 /* AppDelegate.swift in Sources */,
 				18A2675A1D056F1A00068F23 /* MultiTabManangeController.swift in Sources */,
 				18FF99CE1D06B4330057B083 /* TestController2.swift in Sources */,

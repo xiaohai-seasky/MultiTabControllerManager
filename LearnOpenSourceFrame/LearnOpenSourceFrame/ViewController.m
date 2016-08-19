@@ -14,9 +14,64 @@
 
 @implementation ViewController
 
+- (void) viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    NSLog(@"function - %@", NSStringFromSelector(_cmd));
+}
+
+- (void) viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    NSLog(@"function - %@", NSStringFromSelector(_cmd));
+}
+
+- (void) viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    NSLog(@"function - %@", NSStringFromSelector(_cmd));
+}
+
+- (void) viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    
+    NSLog(@"function - %@", NSStringFromSelector(_cmd));
+}
+
+- (void) loadView {
+    [super loadView];
+    
+    NSLog(@"function - %@", NSStringFromSelector(_cmd));
+}
+
+- (void) viewWillLayoutSubviews {
+    [super viewWillLayoutSubviews];
+    
+    NSLog(@"function - %@", NSStringFromSelector(_cmd));
+}
+
+- (void) viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    
+    NSLog(@"function - %@", NSStringFromSelector(_cmd));
+}
+
+- (void) loadViewIfNeeded {
+    [super loadViewIfNeeded];
+    
+    NSLog(@"function - %@", NSStringFromSelector(_cmd));
+}
+
+- (void) updateViewConstraints {
+    [super updateViewConstraints];
+    
+    NSLog(@"function - %@", NSStringFromSelector(_cmd));
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    
+    NSLog(@"function - %@", NSStringFromSelector(_cmd));
 }
 
 - (void)didReceiveMemoryWarning {

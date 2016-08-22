@@ -54,11 +54,15 @@ typedef NS_OPTIONS(NSUInteger, SDWebImageDownloaderOptions) {
 typedef NS_ENUM(NSInteger, SDWebImageDownloaderExecutionOrder) {
     /**
      * Default value. All download operations will execute in queue style (first-in-first-out).
+     *
+     * 默认值，所有的下载操作将按照队列的方式执行（先进先出）
      */
     SDWebImageDownloaderFIFOExecutionOrder,
 
     /**
      * All download operations will execute in stack style (last-in-first-out).
+     *
+     * 所有的下载操作将按照栈的方式执行（后进先出）
      */
     SDWebImageDownloaderLIFOExecutionOrder
 };
@@ -74,6 +78,8 @@ typedef NSDictionary *(^SDWebImageDownloaderHeadersFilterBlock)(NSURL *url, NSDi
 
 /**
  * Asynchronous downloader dedicated and optimized for image loading.
+ *
+ * 下载图片专用的经过优化的异步下载管理器
  */
 @interface SDWebImageDownloader : NSObject
 
@@ -93,6 +99,8 @@ typedef NSDictionary *(^SDWebImageDownloaderHeadersFilterBlock)(NSURL *url, NSDi
 
 /**
  *  The timeout value (in seconds) for the download operation. Default: 15.0.
+ *
+ * 下载操作超时时间（以秒计），默认15秒
  */
 @property (assign, nonatomic) NSTimeInterval downloadTimeout;
 
@@ -106,6 +114,8 @@ typedef NSDictionary *(^SDWebImageDownloaderHeadersFilterBlock)(NSURL *url, NSDi
  *  Singleton method, returns the shared instance
  *
  *  @return global shared instance of downloader class
+ *
+ * 单例方法提供实例
  */
 + (SDWebImageDownloader *)sharedDownloader;
 
@@ -137,6 +147,8 @@ typedef NSDictionary *(^SDWebImageDownloaderHeadersFilterBlock)(NSURL *url, NSDi
  *
  * @param value The value for the header field. Use `nil` value to remove the header.
  * @param field The name of the header field to set.
+ *
+ * 设置HTTP头部信息
  */
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
 
@@ -144,6 +156,8 @@ typedef NSDictionary *(^SDWebImageDownloaderHeadersFilterBlock)(NSURL *url, NSDi
  * Returns the value of the specified HTTP header field.
  *
  * @return The value associated with the header field field, or `nil` if there is no corresponding header field.
+ *
+ * 获取指定的HTTP头部信息
  */
 - (NSString *)valueForHTTPHeaderField:(NSString *)field;
 
@@ -154,6 +168,8 @@ typedef NSDictionary *(^SDWebImageDownloaderHeadersFilterBlock)(NSURL *url, NSDi
  *
  * @param operationClass The subclass of `SDWebImageDownloaderOperation` to set 
  *        as default. Passing `nil` will revert to `SDWebImageDownloaderOperation`.
+ *
+ * 每次SDWebImage 构造一个request operation 来下载一个图片，设置一个 SDWebImageDownloaderOperation 的子类作为默认的 NSOperation 待用
  */
 - (void)setOperationClass:(Class)operationClass;
 
@@ -177,6 +193,8 @@ typedef NSDictionary *(^SDWebImageDownloaderHeadersFilterBlock)(NSURL *url, NSDi
  *                       set to YES. In case of error, the finished argument is always YES.
  *
  * @return A cancellable SDWebImageOperation
+ *
+ * 用一个给定的 URL 创建一个 SDWebImageDownloader 异步下载器，当图片下载完成或者发生错误时代理会被通知
  */
 - (id <SDWebImageOperation>)downloadImageWithURL:(NSURL *)url
                                          options:(SDWebImageDownloaderOptions)options
@@ -185,11 +203,15 @@ typedef NSDictionary *(^SDWebImageDownloaderHeadersFilterBlock)(NSURL *url, NSDi
 
 /**
  * Sets the download queue suspension state
+ *
+ * 设置下载队列的阻塞状态
  */
 - (void)setSuspended:(BOOL)suspended;
 
 /**
  * Cancels all download operations in the queue
+ *
+ * 取消对列中所有的下载操作
  */
 - (void)cancelAllDownloads;
 

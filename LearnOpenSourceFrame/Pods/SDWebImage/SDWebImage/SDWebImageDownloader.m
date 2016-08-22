@@ -15,18 +15,19 @@ static NSString *const kCompletedCallbackKey = @"completed";
 
 @interface SDWebImageDownloader ()
 
-@property (strong, nonatomic) NSOperationQueue *downloadQueue;
-@property (weak, nonatomic) NSOperation *lastAddedOperation;
-@property (assign, nonatomic) Class operationClass;
-@property (strong, nonatomic) NSMutableDictionary *URLCallbacks;
-@property (strong, nonatomic) NSMutableDictionary *HTTPHeaders;
+@property (strong, nonatomic) NSOperationQueue *downloadQueue;       // 下载操作队列
+@property (weak, nonatomic) NSOperation *lastAddedOperation;         // 最后加入的操作
+@property (assign, nonatomic) Class operationClass;                  // 操作类
+@property (strong, nonatomic) NSMutableDictionary *URLCallbacks;     // URL回调
+@property (strong, nonatomic) NSMutableDictionary *HTTPHeaders;      // HTTP头部信息
 // This queue is used to serialize the handling of the network responses of all the download operation in a single queue
-@property (SDDispatchQueueSetterSementics, nonatomic) dispatch_queue_t barrierQueue;
+@property (SDDispatchQueueSetterSementics, nonatomic) dispatch_queue_t barrierQueue;   // 屏蔽队列
 
 @end
 
 @implementation SDWebImageDownloader
 
+/** 该方法主要是集成 SDNetworkActivityIndicator 做网络提示，可以不用 */
 + (void)initialize {
     // Bind SDNetworkActivityIndicator if available (download it here: http://github.com/rs/SDNetworkActivityIndicator )
     // To use it, just add #import "SDNetworkActivityIndicator.h" in addition to the SDWebImage import
@@ -50,6 +51,7 @@ static NSString *const kCompletedCallbackKey = @"completed";
     }
 }
 
+/**  */
 + (SDWebImageDownloader *)sharedDownloader {
     static dispatch_once_t once;
     static id instance;
@@ -59,30 +61,37 @@ static NSString *const kCompletedCallbackKey = @"completed";
     return instance;
 }
 
+/**  */
 - (id)init {
     if ((self = [super init])) {
         _operationClass = [SDWebImageDownloaderOperation class];
+        /// 默认可以解压图片
         _shouldDecompressImages = YES;
+        /// 下载操作执行顺序 ：队列形式
         _executionOrder = SDWebImageDownloaderFIFOExecutionOrder;
         _downloadQueue = [NSOperationQueue new];
+        /// 下载队列最大病发数 ：6
         _downloadQueue.maxConcurrentOperationCount = 6;
         _URLCallbacks = [NSMutableDictionary new];
 #ifdef SD_WEBP
         _HTTPHeaders = [@{@"Accept": @"image/webp,image/*;q=0.8"} mutableCopy];
 #else
-        _HTTPHeaders = [@{@"Accept": @"image/*;q=0.8"} mutableCopy];
+        _HTTPHeaders = [@{@"Accept": @"image/*;q=0.8"} mutableCopy];   // ?
 #endif
+        /// 并发队列
         _barrierQueue = dispatch_queue_create("com.hackemist.SDWebImageDownloaderBarrierQueue", DISPATCH_QUEUE_CONCURRENT);
+        /// 下载超时时间 ：15 秒
         _downloadTimeout = 15.0;
     }
     return self;
 }
 
 - (void)dealloc {
-    [self.downloadQueue cancelAllOperations];
-    SDDispatchQueueRelease(_barrierQueue);
+    [self.downloadQueue cancelAllOperations];   // ?
+    SDDispatchQueueRelease(_barrierQueue);   // ?
 }
 
+/** 设置HTTP 头部信息，如果value 为空则删除相应的HTTP 头部信息 */
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field {
     if (value) {
         self.HTTPHeaders[field] = value;
@@ -92,26 +101,32 @@ static NSString *const kCompletedCallbackKey = @"completed";
     }
 }
 
+/** 获取HTTP 头部信息 */
 - (NSString *)valueForHTTPHeaderField:(NSString *)field {
     return self.HTTPHeaders[field];
 }
 
+/** 设置下载队列的最大并发数 */
 - (void)setMaxConcurrentDownloads:(NSInteger)maxConcurrentDownloads {
     _downloadQueue.maxConcurrentOperationCount = maxConcurrentDownloads;
 }
 
+/** 获取当前正在下载的操作数量 */
 - (NSUInteger)currentDownloadCount {
-    return _downloadQueue.operationCount;
+    return _downloadQueue.operationCount;   // ?
 }
 
+/** 获取下载队列最大并发数 */
 - (NSInteger)maxConcurrentDownloads {
     return _downloadQueue.maxConcurrentOperationCount;
 }
 
+/**  */
 - (void)setOperationClass:(Class)operationClass {
     _operationClass = operationClass ?: [SDWebImageDownloaderOperation class];
 }
 
+/** 下载图片。。。。。。。 */
 - (id <SDWebImageOperation>)downloadImageWithURL:(NSURL *)url options:(SDWebImageDownloaderOptions)options progress:(SDWebImageDownloaderProgressBlock)progressBlock completed:(SDWebImageDownloaderCompletedBlock)completedBlock {
     __block SDWebImageDownloaderOperation *operation;
     __weak __typeof(self)wself = self;
@@ -225,12 +240,14 @@ static NSString *const kCompletedCallbackKey = @"completed";
     });
 }
 
+/** 设置下载队列的阻塞状态 */
 - (void)setSuspended:(BOOL)suspended {
-    [self.downloadQueue setSuspended:suspended];
+    [self.downloadQueue setSuspended:suspended];   // ?
 }
 
+/** 取消所有的下载操作 */
 - (void)cancelAllDownloads {
-    [self.downloadQueue cancelAllOperations];
+    [self.downloadQueue cancelAllOperations];   // ?
 }
 
 @end

@@ -78,7 +78,7 @@ typedef void(^SDWebImageCalculateSizeBlock)(NSUInteger fileCount, NSUInteger tot
 
 /**
  * The maximum length of time to keep an image in the cache, in seconds
- * 图片在缓存中留存的最大时间，以秒计算
+ * 图片在缓存中留存的最大时间，以秒计算, 默认缓存一周
  */
 @property (assign, nonatomic) NSInteger maxCacheAge;
 

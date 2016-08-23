@@ -65,6 +65,7 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
     return self;
 }
 
+/***/
 - (void)start {
     @synchronized (self) {
         if (self.isCancelled) {
@@ -79,27 +80,31 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
         if (hasApplication && [self shouldContinueWhenAppEntersBackground]) {
             __weak __typeof__ (self) wself = self;
             UIApplication * app = [UIApplicationClass performSelector:@selector(sharedApplication)];
-            self.backgroundTaskId = [app beginBackgroundTaskWithExpirationHandler:^{
+            self.backgroundTaskId = [app beginBackgroundTaskWithExpirationHandler:^{   // ?
                 __strong __typeof (wself) sself = wself;
 
                 if (sself) {
                     [sself cancel];
 
-                    [app endBackgroundTask:sself.backgroundTaskId];
-                    sself.backgroundTaskId = UIBackgroundTaskInvalid;
+                    [app endBackgroundTask:sself.backgroundTaskId];   // ?
+                    sself.backgroundTaskId = UIBackgroundTaskInvalid;   // ?
                 }
             }];
         }
 #endif
 
         self.executing = YES;
+        /// 创建connection 代理为self 不立即执行
         self.connection = [[NSURLConnection alloc] initWithRequest:self.request delegate:self startImmediately:NO];
+        /// 纪录当前线程
         self.thread = [NSThread currentThread];
-    }
+    }   /// 解锁
 
+    /// 开始执行connection 下载
     [self.connection start];
 
     if (self.connection) {
+        /// 回调progressBlock receivedSize为0 expectedSize为未知
         if (self.progressBlock) {
             self.progressBlock(0, NSURLResponseUnknownLength);
         }
@@ -107,27 +112,31 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
             [[NSNotificationCenter defaultCenter] postNotificationName:SDWebImageDownloadStartNotification object:self];
         });
 
+        /// 启动RunLoop
         if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber_iOS_5_1) {
             // Make sure to run the runloop in our background thread so it can process downloaded data
             // Note: we use a timeout to work around an issue with NSURLConnection cancel under iOS 5
             //       not waking up the runloop, leading to dead threads (see https://github.com/rs/SDWebImage/issues/466)
-            CFRunLoopRunInMode(kCFRunLoopDefaultMode, 10, false);
+            CFRunLoopRunInMode(kCFRunLoopDefaultMode, 10, false);   // ?
         }
         else {
             CFRunLoopRun();
         }
 
         if (!self.isFinished) {
+            /// 取消connection 执行
             [self.connection cancel];
-            [self connection:self.connection didFailWithError:[NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:@{NSURLErrorFailingURLErrorKey : self.request.URL}]];
+            [self connection:self.connection didFailWithError:[NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:@{NSURLErrorFailingURLErrorKey : self.request.URL}]];   // ?
         }
     }
     else {
+        /// connection 未被初始化，使用error 信息调用completedBlock
         if (self.completedBlock) {
             self.completedBlock(nil, nil, [NSError errorWithDomain:NSURLErrorDomain code:0 userInfo:@{NSLocalizedDescriptionKey : @"Connection can't be initialized"}], YES);
         }
     }
 
+    /// 4.0 及以上系统 结束后台任务 。。。。。。。
 #if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
     Class UIApplicationClass = NSClassFromString(@"UIApplication");
     if(!UIApplicationClass || ![UIApplicationClass respondsToSelector:@selector(sharedApplication)]) {
@@ -141,36 +150,44 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
 #endif
 }
 
+/** 取消下载 */
 - (void)cancel {
     @synchronized (self) {
         if (self.thread) {
+            /// 如果是在self.thread 中执行的下载任务，则停止下载并结束self.thread 线程
             [self performSelector:@selector(cancelInternalAndStop) onThread:self.thread withObject:nil waitUntilDone:NO];
         }
         else {
+            /// 如果没有在self.thread 中进行下载，则只停止connection 的下载
             [self cancelInternal];
         }
     }
 }
 
+/** 取消connection 的执行，并停止当前线程 */
 - (void)cancelInternalAndStop {
     if (self.isFinished) return;
     [self cancelInternal];
-    CFRunLoopStop(CFRunLoopGetCurrent());
+    CFRunLoopStop(CFRunLoopGetCurrent());   // ?
 }
 
+/** 取消connection 的执行 */
 - (void)cancelInternal {
     if (self.isFinished) return;
     [super cancel];
     if (self.cancelBlock) self.cancelBlock();
 
     if (self.connection) {
-        [self.connection cancel];
+        /// 取消connection 链接
+        [self.connection cancel];   // ?
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:SDWebImageDownloadStopNotification object:self];
         });
 
         // As we cancelled the connection, its callback won't be called and thus won't
         // maintain the isFinished and isExecuting flags.
+        /// 因为我们取消connection 链接，它的callback 不会被调用所以不会继续维护isFinished、isExecuting 变量
         if (self.isExecuting) self.executing = NO;
         if (!self.isFinished) self.finished = YES;
     }
@@ -178,12 +195,14 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
     [self reset];
 }
 
+/** 下载完成 */
 - (void)done {
     self.finished = YES;
     self.executing = NO;
     [self reset];
 }
 
+/** 重置self配置 */
 - (void)reset {
     self.cancelBlock = nil;
     self.completedBlock = nil;
@@ -193,29 +212,34 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
     self.thread = nil;
 }
 
+/***/
 - (void)setFinished:(BOOL)finished {
-    [self willChangeValueForKey:@"isFinished"];
+    [self willChangeValueForKey:@"isFinished"];   /// ?
     _finished = finished;
-    [self didChangeValueForKey:@"isFinished"];
+    [self didChangeValueForKey:@"isFinished"];   /// ?
 }
 
+/***/
 - (void)setExecuting:(BOOL)executing {
     [self willChangeValueForKey:@"isExecuting"];
     _executing = executing;
     [self didChangeValueForKey:@"isExecuting"];
 }
 
+/***/
 - (BOOL)isConcurrent {
     return YES;
 }
 
 #pragma mark NSURLConnection (delegate)
-
+/** NSURLConnection 代理方法 接受到响应 */
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     
     //'304 Not Modified' is an exceptional one
-    if (![response respondsToSelector:@selector(statusCode)] || ([((NSHTTPURLResponse *)response) statusCode] < 400 && [((NSHTTPURLResponse *)response) statusCode] != 304)) {
-        NSInteger expected = response.expectedContentLength > 0 ? (NSInteger)response.expectedContentLength : 0;
+    /// HTTP错误代码 304 是一个异常 在后面的 else 中处理
+    if (![response respondsToSelector:@selector(statusCode)] || ([((NSHTTPURLResponse *)response) statusCode] < 400 && [((NSHTTPURLResponse *)response) statusCode] != 304)) {   // ?
+        /// 从response 中获取期望接受的数据长度
+        NSInteger expected = response.expectedContentLength > 0 ? (NSInteger)response.expectedContentLength : 0;   // ?
         self.expectedSize = expected;
         if (self.progressBlock) {
             self.progressBlock(0, expected);
@@ -227,14 +251,18 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
             [[NSNotificationCenter defaultCenter] postNotificationName:SDWebImageDownloadReceiveResponseNotification object:self];
         });
     }
+    /// 处理HTTP 错误代码为 304 的情况
     else {
         NSUInteger code = [((NSHTTPURLResponse *)response) statusCode];
         
         //This is the case when server returns '304 Not Modified'. It means that remote image is not changed.
         //In case of 304 we need just cancel the operation and return cached image from the cache.
+        /// 这种情况是当服务器返回 304 时，这意味着远程的图片没有被修改，如果发生 304 错误，我们只需要取消操作并从缓存返回缓存的图片
         if (code == 304) {
+            /// 304 不属于错误需要正常退出connection 的执行，并维护isFinished、isExecuting 变量，属于正常完成下载
             [self cancelInternal];
         } else {
+            /// 发生HTTP 错误，取消connection 执行，并未正常完成下载
             [self.connection cancel];
         }
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -249,7 +277,9 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
     }
 }
 
+/** NSURLConnection 代理方法 开始接受数据 */
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+    
     [self.imageData appendData:data];
 
     if ((self.options & SDWebImageDownloaderProgressiveDownload) && self.expectedSize > 0 && self.completedBlock) {
@@ -260,19 +290,19 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
         const NSInteger totalSize = self.imageData.length;
 
         // Update the data source, we must pass ALL the data, not just the new bytes
-        CGImageSourceRef imageSource = CGImageSourceCreateWithData((__bridge CFDataRef)self.imageData, NULL);
+        CGImageSourceRef imageSource = CGImageSourceCreateWithData((__bridge CFDataRef)self.imageData, NULL);   // ?
 
         if (width + height == 0) {
-            CFDictionaryRef properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, NULL);
+            CFDictionaryRef properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, NULL);   // ?
             if (properties) {
                 NSInteger orientationValue = -1;
-                CFTypeRef val = CFDictionaryGetValue(properties, kCGImagePropertyPixelHeight);
-                if (val) CFNumberGetValue(val, kCFNumberLongType, &height);
+                CFTypeRef val = CFDictionaryGetValue(properties, kCGImagePropertyPixelHeight);   // ?
+                if (val) CFNumberGetValue(val, kCFNumberLongType, &height);   // ?
                 val = CFDictionaryGetValue(properties, kCGImagePropertyPixelWidth);
                 if (val) CFNumberGetValue(val, kCFNumberLongType, &width);
                 val = CFDictionaryGetValue(properties, kCGImagePropertyOrientation);
                 if (val) CFNumberGetValue(val, kCFNumberNSIntegerType, &orientationValue);
-                CFRelease(properties);
+                CFRelease(properties);   // ?
 
                 // When we draw to Core Graphics, we lose orientation information,
                 // which means the image below born of initWithCGIImage will be
@@ -285,7 +315,7 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
 
         if (width + height > 0 && totalSize < self.expectedSize) {
             // Create the image
-            CGImageRef partialImageRef = CGImageSourceCreateImageAtIndex(imageSource, 0, NULL);
+            CGImageRef partialImageRef = CGImageSourceCreateImageAtIndex(imageSource, 0, NULL);   // ?
 
 #ifdef TARGET_OS_IPHONE
             // Workaround for iOS anamorphic image
@@ -328,12 +358,14 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
 
         CFRelease(imageSource);
     }
+    /// 以上代码为底层图片处理代码，作者从别处复用过来的
 
     if (self.progressBlock) {
         self.progressBlock(self.imageData.length, self.expectedSize);
     }
 }
 
+/** 匹配图片显示方向 */
 + (UIImageOrientation)orientationFromPropertyValue:(NSInteger)value {
     switch (value) {
         case 1:
@@ -357,10 +389,12 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
     }
 }
 
+/** 按某种方式 比例缩放图片 */
 - (UIImage *)scaledImageForKey:(NSString *)key image:(UIImage *)image {
     return SDScaledImageForKey(key, image);
 }
 
+/** NSURLConnection 代理方法 完成 */
 - (void)connectionDidFinishLoading:(NSURLConnection *)aConnection {
     SDWebImageDownloaderCompletedBlock completionBlock = self.completedBlock;
     @synchronized(self) {
@@ -373,7 +407,7 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
         });
     }
     
-    if (![[NSURLCache sharedURLCache] cachedResponseForRequest:_request]) {
+    if (![[NSURLCache sharedURLCache] cachedResponseForRequest:_request]) {   // ?
         responseFromCached = NO;
     }
     
@@ -386,9 +420,10 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
             image = [self scaledImageForKey:key image:image];
             
             // Do not force decoding animated GIFs
+            /// 不要强制解码 GIF 动画
             if (!image.images) {
                 if (self.shouldDecompressImages) {
-                    image = [UIImage decodedImageWithImage:image];
+                    image = [UIImage decodedImageWithImage:image];   // ?
                 }
             }
             if (CGSizeEqualToSize(image.size, CGSizeZero)) {
@@ -401,10 +436,12 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
             completionBlock(nil, nil, [NSError errorWithDomain:SDWebImageErrorDomain code:0 userInfo:@{NSLocalizedDescriptionKey : @"Image data is nil"}], YES);
         }
     }
+    
     self.completionBlock = nil;
     [self done];
 }
 
+/** NSURLConnection 代理方法 发生错误 */
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     @synchronized(self) {
         CFRunLoopStop(CFRunLoopGetCurrent());
@@ -418,14 +455,18 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
     if (self.completedBlock) {
         self.completedBlock(nil, nil, error, YES);
     }
+    
     self.completionBlock = nil;
     [self done];
 }
 
+/** NSURLConnection 代理方法 将要缓存response */
 - (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse {
+    /// 如果该方法调用，意味着response 不是从cache 中读取的
     responseFromCached = NO; // If this method is called, it means the response wasn't read from cache
-    if (self.request.cachePolicy == NSURLRequestReloadIgnoringLocalCacheData) {
+    if (self.request.cachePolicy == NSURLRequestReloadIgnoringLocalCacheData) {   // ?
         // Prevents caching of responses
+        /// 阻止缓存 response
         return nil;
     }
     else {
@@ -433,14 +474,17 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
     }
 }
 
+/** APP进入后台是否继续下载 */
 - (BOOL)shouldContinueWhenAppEntersBackground {
     return self.options & SDWebImageDownloaderContinueInBackground;
 }
 
+/**  */
 - (BOOL)connectionShouldUseCredentialStorage:(NSURLConnection __unused *)connection {
     return self.shouldUseCredentialStorage;
 }
 
+/**  */
 - (void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge{
     if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
         if (!(self.options & SDWebImageDownloaderAllowInvalidSSLCertificates) &&

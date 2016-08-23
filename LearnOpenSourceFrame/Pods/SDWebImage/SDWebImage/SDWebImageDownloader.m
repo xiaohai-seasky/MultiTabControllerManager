@@ -126,7 +126,7 @@ static NSString *const kCompletedCallbackKey = @"completed";
     _operationClass = operationClass ?: [SDWebImageDownloaderOperation class];
 }
 
-/** 下载图片。。。。。。。 */
+/** 下载图片，返回可操作的 opration 。。。。。。。 */
 - (id <SDWebImageOperation>)downloadImageWithURL:(NSURL *)url options:(SDWebImageDownloaderOptions)options progress:(SDWebImageDownloaderProgressBlock)progressBlock completed:(SDWebImageDownloaderCompletedBlock)completedBlock {
     __block SDWebImageDownloaderOperation *operation;
     __weak __typeof(self)wself = self;
@@ -138,15 +138,17 @@ static NSString *const kCompletedCallbackKey = @"completed";
         }
 
         // In order to prevent from potential duplicate caching (NSURLCache + SDImageCache) we disable the cache for image requests if told otherwise
-        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url cachePolicy:(options & SDWebImageDownloaderUseNSURLCache ? NSURLRequestUseProtocolCachePolicy : NSURLRequestReloadIgnoringLocalCacheData) timeoutInterval:timeoutInterval];
+        /// 创建 request .......
+        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url cachePolicy:(options & SDWebImageDownloaderUseNSURLCache ? NSURLRequestUseProtocolCachePolicy : NSURLRequestReloadIgnoringLocalCacheData) timeoutInterval:timeoutInterval];   // ?
         request.HTTPShouldHandleCookies = (options & SDWebImageDownloaderHandleCookies);
         request.HTTPShouldUsePipelining = YES;
         if (wself.headersFilter) {
             request.allHTTPHeaderFields = wself.headersFilter(url, [wself.HTTPHeaders copy]);
         }
         else {
-            request.allHTTPHeaderFields = wself.HTTPHeaders;
+            request.allHTTPHeaderFields = wself.HTTPHeaders;   // ?
         }
+        /// 创建 operation
         operation = [[wself.operationClass alloc] initWithRequest:request
                                                           options:options
                                                          progress:^(NSInteger receivedSize, NSInteger expectedSize) {
@@ -169,6 +171,7 @@ static NSString *const kCompletedCallbackKey = @"completed";
                                                             __block NSArray *callbacksForURL;
                                                             dispatch_barrier_sync(sself.barrierQueue, ^{
                                                                 callbacksForURL = [sself.URLCallbacks[url] copy];
+                                                                /// 任务完成后移除回调
                                                                 if (finished) {
                                                                     [sself.URLCallbacks removeObjectForKey:url];
                                                                 }
@@ -185,23 +188,26 @@ static NSString *const kCompletedCallbackKey = @"completed";
                                                                 [sself.URLCallbacks removeObjectForKey:url];
                                                             });
                                                         }];
+        /// 配置 operation
         operation.shouldDecompressImages = wself.shouldDecompressImages;
         
         if (wself.urlCredential) {
             operation.credential = wself.urlCredential;
         } else if (wself.username && wself.password) {
-            operation.credential = [NSURLCredential credentialWithUser:wself.username password:wself.password persistence:NSURLCredentialPersistenceForSession];
+            operation.credential = [NSURLCredential credentialWithUser:wself.username password:wself.password persistence:NSURLCredentialPersistenceForSession];   // ?
         }
         
         if (options & SDWebImageDownloaderHighPriority) {
-            operation.queuePriority = NSOperationQueuePriorityHigh;
+            operation.queuePriority = NSOperationQueuePriorityHigh;   // ?
         } else if (options & SDWebImageDownloaderLowPriority) {
             operation.queuePriority = NSOperationQueuePriorityLow;
         }
 
+        /// operation 添加到 downloadQueue
         [wself.downloadQueue addOperation:operation];
         if (wself.executionOrder == SDWebImageDownloaderLIFOExecutionOrder) {
             // Emulate LIFO execution order by systematically adding new operations as last operation's dependency
+            /// 通过有组织的将新添加的 operation 作为 上次纪录的最后一个被添加的 operation 的依赖，来模仿后进先出的栈执行顺序
             [wself.lastAddedOperation addDependency:operation];
             wself.lastAddedOperation = operation;
         }
@@ -210,8 +216,10 @@ static NSString *const kCompletedCallbackKey = @"completed";
     return operation;
 }
 
+/** 为一个URL 添加进度回调（progressBlock），完成回调（completedBlock），无参回调（createCallback） */
 - (void)addProgressCallback:(SDWebImageDownloaderProgressBlock)progressBlock completedBlock:(SDWebImageDownloaderCompletedBlock)completedBlock forURL:(NSURL *)url createCallback:(SDWebImageNoParamsBlock)createCallback {
     // The URL will be used as the key to the callbacks dictionary so it cannot be nil. If it is nil immediately call the completed block with no image or data.
+    /// 这里的 URL 会被用作 callbacks 字典的 key，所依这个URL 不能为空，如果为空会马上使用 空的image 或者空的data 调用completed 回调
     if (url == nil) {
         if (completedBlock != nil) {
             completedBlock(nil, nil, nil, NO);
@@ -219,7 +227,7 @@ static NSString *const kCompletedCallbackKey = @"completed";
         return;
     }
 
-    dispatch_barrier_sync(self.barrierQueue, ^{
+    dispatch_barrier_sync(self.barrierQueue, ^{   // ?
         BOOL first = NO;
         if (!self.URLCallbacks[url]) {
             self.URLCallbacks[url] = [NSMutableArray new];
@@ -227,6 +235,8 @@ static NSString *const kCompletedCallbackKey = @"completed";
         }
 
         // Handle single download of simultaneous download request for the same URL
+        /// 处理对于同一个URL的多个同时进行的下载请求当中的一个
+        /// 以下代码添加一个URL 的progressBlock completedBlock 到self.URLCallbacks 字典中
         NSMutableArray *callbacksForURL = self.URLCallbacks[url];
         NSMutableDictionary *callbacks = [NSMutableDictionary new];
         if (progressBlock) callbacks[kProgressCallbackKey] = [progressBlock copy];

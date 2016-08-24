@@ -42,6 +42,8 @@
 
  * @endcode
  */
+
+
 @interface UIImageView (WebCache)
 
 /**
@@ -190,7 +192,7 @@
 
 @end
 
-
+/** 过期的方法 */
 @interface UIImageView (WebCacheDeprecated)
 
 - (NSURL *)imageURL __deprecated_msg("Use `sd_imageURL`");

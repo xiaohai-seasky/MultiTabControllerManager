@@ -35,11 +35,16 @@
 
 @end
 
+
+
+
 typedef void(^SDWebImagePrefetcherProgressBlock)(NSUInteger noOfFinishedUrls, NSUInteger noOfTotalUrls);
 typedef void(^SDWebImagePrefetcherCompletionBlock)(NSUInteger noOfFinishedUrls, NSUInteger noOfSkippedUrls);
 
 /**
  * Prefetch some URLs in the cache for future use. Images are downloaded in low priority.
+ *
+ * 预先取得一些URL中的图片到缓存中以便将来使用，下载的图片是低质量的
  */
 @interface SDWebImagePrefetcher : NSObject
 

@@ -5,12 +5,15 @@
 
 #import "NSData+ImageContentType.h"
 
-
+/// NSData 扩展
 @implementation NSData (ImageContentType)
-
+/** 计算一个图片的 内容类型(如：image/jpeg, image/gif 等) */
 + (NSString *)sd_contentTypeForImageData:(NSData *)data {
+    
     uint8_t c;
-    [data getBytes:&c length:1];
+    /// 获取图片的二进制数据的第一个字节
+    [data getBytes:&c length:1];   // ?
+    
     switch (c) {
         case 0xFF:
             return @"image/jpeg";
@@ -27,7 +30,9 @@
                 return nil;
             }
 
+            /// 用data 的前12个字节生成ASCII码编码字符串
             NSString *testString = [[NSString alloc] initWithData:[data subdataWithRange:NSMakeRange(0, 12)] encoding:NSASCIIStringEncoding];
+            
             if ([testString hasPrefix:@"RIFF"] && [testString hasSuffix:@"WEBP"]) {
                 return @"image/webp";
             }
@@ -38,6 +43,8 @@
 }
 
 @end
+
+
 
 
 @implementation NSData (ImageContentTypeDeprecated)

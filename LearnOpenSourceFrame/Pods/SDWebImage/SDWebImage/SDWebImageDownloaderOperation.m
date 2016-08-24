@@ -214,9 +214,9 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
 
 /***/
 - (void)setFinished:(BOOL)finished {
-    [self willChangeValueForKey:@"isFinished"];   /// ?
+    [self willChangeValueForKey:@"isFinished"];   // ?
     _finished = finished;
-    [self didChangeValueForKey:@"isFinished"];   /// ?
+    [self didChangeValueForKey:@"isFinished"];   // ?
 }
 
 /***/
@@ -245,6 +245,7 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
             self.progressBlock(0, expected);
         }
 
+        /// 使用期望接受的数据长度初始化 self.imageData
         self.imageData = [[NSMutableData alloc] initWithCapacity:expected];
         self.response = response;
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -389,13 +390,14 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
     }
 }
 
-/** 按某种方式 比例缩放图片 */
+/** 按某种方式 比例缩放图片 @1x、@2x、@3x */
 - (UIImage *)scaledImageForKey:(NSString *)key image:(UIImage *)image {
     return SDScaledImageForKey(key, image);
 }
 
 /** NSURLConnection 代理方法 完成 */
 - (void)connectionDidFinishLoading:(NSURLConnection *)aConnection {
+    
     SDWebImageDownloaderCompletedBlock completionBlock = self.completedBlock;
     @synchronized(self) {
         CFRunLoopStop(CFRunLoopGetCurrent());
@@ -443,6 +445,7 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
 
 /** NSURLConnection 代理方法 发生错误 */
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
+    
     @synchronized(self) {
         CFRunLoopStop(CFRunLoopGetCurrent());
         self.thread = nil;
@@ -462,6 +465,7 @@ NSString *const SDWebImageDownloadFinishNotification = @"SDWebImageDownloadFinis
 
 /** NSURLConnection 代理方法 将要缓存response */
 - (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse {
+    
     /// 如果该方法调用，意味着response 不是从cache 中读取的
     responseFromCached = NO; // If this method is called, it means the response wasn't read from cache
     if (self.request.cachePolicy == NSURLRequestReloadIgnoringLocalCacheData) {   // ?

@@ -10,6 +10,9 @@ import UIKit
 
 class BreakBoxMainView: UIView {
     
+    private lazy var selfW: CGFloat = { return self.frame.width }()
+    private lazy var selfH: CGFloat = { return self.frame.height }()
+    
     private var rows: CGFloat = 4
     private var columns: CGFloat = 7
     private var totalWidth: CGFloat = 320
@@ -18,6 +21,8 @@ class BreakBoxMainView: UIView {
     private var startY: CGFloat = 0
     private var spaceBetwenRows: CGFloat = 0
     private var spaceBetwenColumns: CGFloat = 0
+    private lazy var oneBoxW: CGFloat = (self.selfW - 2.0*self.startX - (self.columns-1)*self.spaceBetwenColumns)/self.columns
+    private lazy var oneBoxH: CGFloat = (self.totalHeight - 2.0*self.startY - (self.rows-1)*self.spaceBetwenRows)/self.rows
     
     private var ball: UIImageView!
     private var ballW: CGFloat = 20
@@ -56,9 +61,6 @@ class BreakBoxMainView: UIView {
     private var moveRightBtn: UIButton!
     private var durationLabel: UILabel!
     
-    private lazy var selfW: CGFloat = { return self.frame.width }()
-    private lazy var selfH: CGFloat = { return self.frame.height }()
-    
     private lazy var btnW: CGFloat = { return 50 }()
     private lazy var btnH: CGFloat = { return self.btnW }()
     private lazy var btnStartX: CGFloat = { return 20 }()
@@ -79,16 +81,323 @@ class BreakBoxMainView: UIView {
         
         self.backgroundColor = UIColor.orangeColor()
         self.frame = UIScreen.mainScreen().bounds
+        
+        initalAndStandardVerables()
         start()
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
+
+// MARK: DATA INIT AND CHECK
+extension BreakBoxMainView {
+    private func initalAndStandardVerables() {
+        rows = 4
+        columns = 7
+        totalWidth = 320
+        totalHeight = 150
+        startX = 0
+        startY = 0
+        spaceBetwenRows = 0
+        spaceBetwenColumns = 0
+        //oneBoxW
+        //oneBoxH
+
+        ballW = 20
+        ballH = 20
+        ballRadius = 10
+        ballX = 0
+        ballY = 0
+        ballCenterX = 0
+        ballCenterY = 0
+        //ballColor
+        //ballImage
+        ballXSpeed = -10.0
+        ballYSpeed = -10.0
+
+        moverW = 100
+        moverH = 10
+        moverX = 0
+        moverY = 0
+        moverCenterX = 0
+        moverCenterY = 0
+        //moverColor
+        //moverImage
+        moverSpeed = 10.0
+        //moverBotFix
+
+        timerRate = 0.1
+        
+
+        checkLegal()
+    }
     
+    
+    private func checkLegal() {
+        /// ball - box
+        if self.ballW > self.oneBoxW {
+            self.ballW = self.oneBoxW
+        } else if self.ballW < 3 {
+            self.ballW = 3
+        }
+        if self.ballH > self.oneBoxH {
+            self.ballH = self.oneBoxH
+        } else if self.ballH < 3 {
+            self.ballH = 3
+        }
+        /// ball - ball
+        if self.ballW > self.ballH {
+            self.ballW = self.ballH
+        } else {
+            self.ballH = self.ballW
+        }
+        /// ball - mover
+        if self.moverW < self.ballW {
+            self.moverW = self.ballW
+        }
+        /// mover - mover
+        if self.moverH > 10 {
+            self.moverH = 10
+        }
+        /// mover - self
+        if self.moverW > self.selfW - 70 {
+            self.moverW = self.selfW - 70
+        }
+        /// ballSpeed - ball
+        if self.ballXSpeed > self.ballW {
+            self.ballXSpeed = self.ballW
+        } else if self.ballXSpeed < -self.ballW {
+            self.ballXSpeed = -self.ballW
+        }
+        if self.ballYSpeed > self.ballH  {
+            self.ballYSpeed = self.ballH
+        } else if self.ballYSpeed < -self.ballH {
+            self.ballYSpeed = -self.ballH
+        }
+    }
+    
+}
+
+// MARK: DATA STRUCT
+extension BreakBoxMainView {
+    enum varKey: String {
+        case rows  = "rows"
+        case columns  = "columns"
+        case totalWidth  = "totalWidth"
+        case totalHeight  = "totalHeight"
+        case startX  = "startX"
+        case startY  = "startY"
+        case spaceBetwenRows  = "spaceBetwenRows"
+        case spaceBetwenColumns  = "spaceBetwenColumns"
+        //case oneBoxW  = "oneBoxW"
+        //case oneBoxH  = "oneBoxH"
+        case ballW  = "ballW"
+        case ballH  = "ballH"
+        case ballRadius  = "ballRadius"
+        case ballX  = "ballX"
+        case ballY  = "ballY"
+        case ballCenterX  = "ballCenterX"
+        case ballCenterY  = "ballCenterY"
+        //case ballColor  = "ballColor"
+        //case ballImage  = "ballImage"
+        case ballXSpeed  = "ballXSpeed"
+        case ballYSpeed  = "ballYSpeed"
+        case moverW  = "moverW"
+        case moverH  = "moverH"
+        case moverX  = "moverX"
+        case moverY  = "moverY"
+        case moverCenterX  = "moverCenterX"
+        case moverCenterY  = "moverCenterY"
+        //case moverColor  = "moverColor"
+        //case moverImage  = "moverImage"
+        case moverSpeed  = "moverSpeed"
+        //case moverBotFix  = "moverBotFix"
+        case timerRate  = "timerRate"
+    }
+}
+
+// MARK: ASSISTANT METHOD
+extension BreakBoxMainView {
+//    private func makeDicForSettingView() -> [Stirng: Any] {
+//        let dic: [String: Any] = [
+//            varKey.rows.rawValue: self.rows,
+//            varKey.columns.rawValue: self.columns,
+//            varKey.totalWidth.rawValue: self.totalWidth,
+//            varKey.totalHeight.rawValue: self.totalHeight,
+//            varKey.startX.rawValue: self.startX,
+//            varKey.startY.rawValue: self.startY,
+//            varKey.spaceBetwenRows.rawValue: self.spaceBetwenRows,
+//            varKey.spaceBetwenColumns.rawValue: self.spaceBetwenColumns,
+//            //varKey.oneBoxW.rawValue: self.oneBoxW,
+//            //varKey.oneBoxH.rawValue: self.oneBoxH,
+//            varKey.ballW.rawValue: self.ballW,
+//            varKey.ballH.rawValue: self.ballH,
+//            varKey.ballRadius.rawValue: self.ballRadius,
+//            varKey.ballX.rawValue: self.ballX,
+//            varKey.ballY.rawValue: self.ballY,
+//            varKey.ballCenterX.rawValue: self.ballCenterX,
+//            varKey.ballCenterY.rawValue: self.ballCenterY,
+//            //varKey.ballColor.rawValue: self.ballColor,
+//            //varKey.ballImage.rawValue: self.ballImage,
+//            varKey.ballXSpeed.rawValue: self.ballXSpeed,
+//            varKey.ballYSpeed.rawValue: self.ballYSpeed,
+//            varKey.moverW.rawValue: self.moverW,
+//            varKey.moverH.rawValue: self.moverH,
+//            varKey.moverX.rawValue: self.moverX,
+//            varKey.moverY.rawValue: self.moverY,
+//            varKey.moverCenterX.rawValue: self.moverCenterX,
+//            varKey.moverCenterY.rawValue: self.moverCenterY,
+//            //varKey.moverColor.rawValue: self.moverColor,
+//            //varKey.moverImage.rawValue: self.moverImage,
+//            varKey.moverSpeed.rawValue: self.moverSpeed,
+//            //varKey.moverBotFix.rawValue: self.moverBotFix,
+//            varKey.timerRate.rawValue: self.timerRate
+//        ]
+//        return dic
+//    }
+
+//    private func resetVerablesWithSettingReturn(dic: [String: Any]) {
+//        rows = dic[varKey.rows.rawValue] as? CGFloat ?? 4
+//        columns = dic[varKey.columns.rawValue] as? CGFloat ?? 7
+//        totalWidth = dic[varKey.totalWidth.rawValue] as? CGFloat ?? 320
+//        totalHeight = dic[varKey.totalHeight.rawValue] as? CGFloat ?? 150
+//        startX = dic[varKey.startX.rawValue] as? CGFloat ?? 0
+//        startY = dic[varKey.startY.rawValue] as? CGFloat ?? 0
+//        spaceBetwenRows = dic[varKey.spaceBetwenRows.rawValue] as? CGFloat ?? 0
+//        spaceBetwenColumns = dic[varKey.spaceBetwenColumns.rawValue] as? CGFloat ?? 0
+//        //oneBoxW
+//        //oneBoxH
+//        ballW = dic[varKey.ballW.rawValue] as? CGFloat ?? 20
+//        ballH = dic[varKey.ballH.rawValue] as? CGFloat ?? 20
+//        ballRadius = dic[varKey.ballRadius.rawValue] as? CGFloat ?? 10
+//        ballX = dic[varKey.ballX.rawValue] as? CGFloat ?? 0
+//        ballY = dic[varKey.ballY.rawValue] as? CGFloat ?? 0
+//        ballCenterX = dic[varKey.ballCenterX.rawValue] as? CGFloat ?? 0
+//        ballCenterY = dic[varKey.ballCenterY.rawValue] as? CGFloat ?? 0
+//        //ballColor
+//        //ballImage
+//        ballXSpeed = dic[varKey.ballXSpeed.rawValue] as? CGFloat ?? -10.0
+//        ballYSpeed = dic[varKey.ballYSpeed.rawValue] as? CGFloat ?? -10.0
+//        moverW = dic[varKey.moverW.rawValue] as? CGFloat ?? 100
+//        moverH = dic[varKey.moverH.rawValue] as? CGFloat ?? 10
+//        moverX = dic[varKey.moverX.rawValue] as? CGFloat ?? 0
+//        moverY = dic[varKey.moverY.rawValue] as? CGFloat ?? 0
+//        moverCenterX = dic[varKey.moverCenterX.rawValue] as? CGFloat ?? 0
+//        moverCenterY = dic[varKey.moverCenterY.rawValue] as? CGFloat ?? 0
+//        //moverColor
+//        //moverImage
+//        moverSpeed = dic[varKey.moverSpeed.rawValue] as? CGFloat ?? 10.0
+//        //moverBotFix
+//        timerRate = dic[varKey.timerRate.rawValue] as? NSTimeInterval ?? 0.1
+//        
+//        checkLegal()
+//    }
+}
+
+// MARK: CREATE UI
+extension BreakBoxMainView {
     
     private func start() {
-//        generat/eBoxes()
+        func generateBoxes() {
+            func genereteRandomColor() -> UIColor {
+                let red: CGFloat = CGFloat(arc4random_uniform(255))/255.0
+                let green: CGFloat = CGFloat(arc4random_uniform(255))/255.0
+                let blue: CGFloat = CGFloat(arc4random_uniform(255))/255.0
+                return UIColor(red: red, green: green, blue: blue, alpha: 1)
+            }
+            
+            //let totalW: CGFloat = self.bounds.width
+            //let totalH: CGFloat = self.totalHeight
+            //let oneBoxW = (totalW - 2.0*startX - (columns-1)*spaceBetwenColumns)/self.columns
+            //let oneBoxH = (totalH - 2.0*startY - (rows-1)*spaceBetwenRows)/self.rows
+            for i in 0 ..< Int(self.rows)*Int(self.columns) {
+                
+                let oneBox: UILabel = UILabel()
+                oneBox.frame = CGRect(x: startX + CGFloat((i%Int(self.columns)))*(oneBoxW+spaceBetwenColumns), y: startY + CGFloat((i/Int(self.columns)))*(oneBoxH+spaceBetwenRows), width: oneBoxW, height: oneBoxH)
+                oneBox.backgroundColor = genereteRandomColor()
+                self.addSubview(oneBox)
+                self.boxes.append(oneBox)
+            }
+        }
+        
+        func createMover() {
+            let mover = UIImageView()
+            mover.frame = CGRect(x: 0, y: 0, width: self.moverW, height: self.moverH)
+            mover.center.x = self.bounds.width/2.0
+            mover.frame.origin.y = self.bounds.height - self.moverH - self.moverBotFix
+            mover.backgroundColor = self.moverColor
+            /// not set image
+            self.addSubview(mover)
+            self.mover = mover
+        }
+        
+        func createBall() {
+            let ball = UIImageView()
+            ball.frame = CGRect(x: 0, y: 0, width: self.ballW, height: self.ballH)
+            ball.frame.origin.x = self.frame.width/2.0 // self.mover.frame.origin.x
+            ball.frame.origin.y = self.mover.frame.minY - self.ballH
+            ball.backgroundColor = self.ballColor
+            /// not set image
+            self.addSubview(ball)
+            self.ball = ball
+        }
+        
+        func createTimer() {
+            let timer = NSTimer.scheduledTimerWithTimeInterval(self.timerRate, target: self, selector: #selector(callByTimer), userInfo: nil, repeats: true)
+            timer.fireDate = NSDate.distantFuture()
+            self.timer = timer
+        }
+        
+        func createControlBtn() {
+            func setUpBtn() {
+                self.moveLeftBtn = UIButton(type: .Custom)
+                self.addSubview(self.moveLeftBtn)
+                
+                self.settingBtn = UIButton(type: .Custom)
+                self.addSubview(self.settingBtn)
+                
+                self.pauseOrResumeBtn = UIButton(type: .Custom)
+                self.addSubview(self.pauseOrResumeBtn)
+                
+                self.moveRightBtn = UIButton(type: .Custom)
+                self.addSubview(self.moveRightBtn)
+            }
+            
+            func layoutBtn() {
+                self.moveLeftBtn.frame = CGRect(x: self.btnStartX, y: self.mover.frame.maxY + self.btnTopSpace, width: self.btnW, height: self.btnH)
+                
+                self.settingBtn.frame = self.moveLeftBtn.frame
+                self.settingBtn.frame.origin.x += 1*(self.btnW + self.btnSpace)
+                
+                self.pauseOrResumeBtn.frame = self.moveLeftBtn.frame
+                self.pauseOrResumeBtn.frame.origin.x += 2*(self.btnW + self.btnSpace)
+                
+                self.moveRightBtn.frame = self.moveLeftBtn.frame
+                self.moveRightBtn.frame.origin.x += 3*(self.btnW + self.btnSpace)
+            }
+            
+            func configureBtn() {
+                self.moveLeftBtn.backgroundColor = UIColor.cyanColor()
+                self.moveLeftBtn.addTarget(self, action: #selector(moveLeft), forControlEvents: .TouchUpInside)
+                
+                self.settingBtn.backgroundColor = UIColor.cyanColor()
+                self.settingBtn.addTarget(self, action: #selector(showSettingView), forControlEvents: .TouchUpInside)
+                
+                self.pauseOrResumeBtn.backgroundColor = UIColor.cyanColor()
+                self.pauseOrResumeBtn.addTarget(self, action: #selector(pauseOrResume), forControlEvents: .TouchUpInside)
+                
+                self.moveRightBtn.backgroundColor = UIColor.cyanColor()
+                self.moveRightBtn.addTarget(self, action: #selector(moveRight), forControlEvents: .TouchUpInside)
+            }
+            
+            setUpBtn()
+            layoutBtn()
+            configureBtn()
+        }
+        
+        generateBoxes()
         createMover()
         createBall()
         createTimer()
@@ -96,109 +405,7 @@ class BreakBoxMainView: UIView {
     }
 }
 
-extension BreakBoxMainView {
-    private func generateBoxes() {
-        
-        let totalW: CGFloat = self.bounds.width
-        let totalH: CGFloat = self.totalHeight
-        
-        let oneBoxW = (totalW - 2.0*startX - (columns-1)*spaceBetwenColumns)/self.columns
-        let oneBoxH = (totalH - 2.0*startY - (rows-1)*spaceBetwenRows)/self.rows
-        
-        for i in 0 ..< Int(self.rows)*Int(self.columns) {
-            
-            let oneBox: UILabel = UILabel()
-            oneBox.frame = CGRect(x: startX + CGFloat((i%Int(self.columns)))*(oneBoxW+spaceBetwenColumns), y: startY + CGFloat((i/Int(self.columns)))*(oneBoxH+spaceBetwenRows), width: oneBoxW, height: oneBoxH)
-            oneBox.backgroundColor = genereteRandomColor()
-            self.addSubview(oneBox)
-            self.boxes.append(oneBox)
-        }
-    }
-    
-    private func genereteRandomColor() -> UIColor {
-        
-        let red: CGFloat = CGFloat(arc4random_uniform(255))/255.0
-        let green: CGFloat = CGFloat(arc4random_uniform(255))/255.0
-        let blue: CGFloat = CGFloat(arc4random_uniform(255))/255.0
-        return UIColor(red: red, green: green, blue: blue, alpha: 1)
-    }
-}
-
-extension BreakBoxMainView {
-    private func createMover() {
-        let mover = UIImageView()
-        mover.frame = CGRect(x: 0, y: 0, width: self.moverW, height: self.moverH)
-        mover.center.x = self.bounds.width/2.0
-        mover.frame.origin.y = self.bounds.height - self.moverH - self.moverBotFix
-        mover.backgroundColor = self.moverColor
-        /// not set image 
-        self.addSubview(mover)
-        self.mover = mover
-    }
-}
-
-extension BreakBoxMainView {
-    private func createBall() {
-        let ball = UIImageView()
-        ball.frame = CGRect(x: 0, y: 0, width: self.ballW, height: self.ballH)
-        ball.frame.origin.x = self.frame.width/2.0 // self.mover.frame.origin.x
-        ball.frame.origin.y = self.mover.frame.minY - self.ballH
-        ball.backgroundColor = self.ballColor
-        /// not set image
-        self.addSubview(ball)
-        self.ball = ball
-    }
-}
-
-extension BreakBoxMainView {
-    private func createControlBtn() {
-        setUpBtn()
-        layoutBtn()
-        configureBtn()
-    }
-    
-    private func setUpBtn() {
-        self.moveLeftBtn = UIButton(type: .Custom)
-        self.addSubview(self.moveLeftBtn)
-        
-        self.settingBtn = UIButton(type: .Custom)
-        self.addSubview(self.settingBtn)
-        
-        self.pauseOrResumeBtn = UIButton(type: .Custom)
-        self.addSubview(self.pauseOrResumeBtn)
-        
-        self.moveRightBtn = UIButton(type: .Custom)
-        self.addSubview(self.moveRightBtn)
-    }
-    
-    private func layoutBtn() {
-        self.moveLeftBtn.frame = CGRect(x: self.btnStartX, y: self.mover.frame.maxY + self.btnTopSpace, width: self.btnW, height: self.btnH)
-        
-        self.settingBtn.frame = self.moveLeftBtn.frame
-        self.settingBtn.frame.origin.x += 1*(self.btnW + self.btnSpace)
-        
-        self.pauseOrResumeBtn.frame = self.moveLeftBtn.frame
-        self.pauseOrResumeBtn.frame.origin.x += 2*(self.btnW + self.btnSpace)
-        
-        self.moveRightBtn.frame = self.moveLeftBtn.frame
-        self.moveRightBtn.frame.origin.x += 3*(self.btnW + self.btnSpace)
-    }
-    
-    private func configureBtn() {
-        self.moveLeftBtn.backgroundColor = UIColor.cyanColor()
-        self.moveLeftBtn.addTarget(self, action: #selector(moveLeft), forControlEvents: .TouchUpInside)
-        
-        self.settingBtn.backgroundColor = UIColor.cyanColor()
-        self.settingBtn.addTarget(self, action: #selector(showSettingView), forControlEvents: .TouchUpInside)
-        
-        self.pauseOrResumeBtn.backgroundColor = UIColor.cyanColor()
-        self.pauseOrResumeBtn.addTarget(self, action: #selector(pauseOrResume), forControlEvents: .TouchUpInside)
-        
-        self.moveRightBtn.backgroundColor = UIColor.cyanColor()
-        self.moveRightBtn.addTarget(self, action: #selector(moveRight), forControlEvents: .TouchUpInside)
-    }
-}
-
+// MARK: BUTTON ACTION
 extension BreakBoxMainView {
     @objc private func moveLeft() {
         self.mover.frame.origin.x -= self.moverSpeed
@@ -239,14 +446,8 @@ extension BreakBoxMainView {
     }
 }
 
-
+// MARK: TIMER CONTROL METHOD
 extension BreakBoxMainView {
-    private func createTimer() {
-        let timer = NSTimer.scheduledTimerWithTimeInterval(self.timerRate, target: self, selector: #selector(callByTimer), userInfo: nil, repeats: true)
-        timer.fireDate = NSDate.distantFuture()
-        self.timer = timer
-    }
-    
     private func clearTimer() {
         if let timer = self.timer {
             timer.invalidate()
@@ -274,6 +475,7 @@ extension BreakBoxMainView {
     
 }
 
+// MARK: UPDATE PER FRAME
 extension BreakBoxMainView {
     @objc private func callByTimer() {
         updateBallFrame()
@@ -285,14 +487,17 @@ extension BreakBoxMainView {
         
         var index: Int = 0
         for box in self.boxes {
-            collisionTestWithBox(self.ball, box: box, index: index)
+            let isCollided = collisionTestWithBox(self.ball, box: box, index: index)
+            if isCollided {
+                break
+            }
             index += 1
         }
         collisionTestWithBorder(self.ball, borderView: self)
         collisionTestWithMover(self.ball, mover: self.mover)
     }
     
-    private func collisionTestWithBox(ball: UIView, box: UIView, index: Int) {
+    private func collisionTestWithBox(ball: UIView, box: UIView, index: Int) -> Bool {
         let ballMaxX = ball.frame.maxX
         let ballMinX = ball.frame.minX
         let ballMaxY = ball.frame.maxY
@@ -304,23 +509,29 @@ extension BreakBoxMainView {
         let boxMinY = box.frame.minY
         
         /// error condition : ball W/H > box H/W   need to fix
-        if ballMinX >= boxMinX && ballMinX <= boxMaxX && ((ballMinY >= boxMinY && ballMinY <= boxMaxY) || (ballMaxY >= boxMinY && ballMaxY <= boxMaxY)) {
-            self.ballXSpeed *= -1
-            box.removeFromSuperview()
-            self.boxes.removeAtIndex(index)
-        } else if ballMaxY >= boxMinX && ballMaxY <= boxMaxX && ((ballMinY >= boxMinY && ballMinY <= boxMaxY) || (ballMaxY >= boxMinY && ballMaxY <= boxMaxY)) {
-            self.ballXSpeed *= -1
-            box.removeFromSuperview()
-            self.boxes.removeAtIndex(index)
-        } else if boxMaxY >= ballMinX && boxMaxY <= ballMaxX && ((boxMinY >= ballMinY && boxMinY <= ballMaxY) || (boxMaxY >= ballMinY && boxMaxY <= ballMaxY)) {
-            self.ballYSpeed *= -1
-            box.removeFromSuperview()
-            self.boxes.removeAtIndex(index)
-        } else if boxMinY >= ballMinX && boxMinY <= ballMaxX && ((boxMinY >= ballMinY && boxMinY <= ballMaxY) || (boxMaxY >= ballMinY && boxMaxY <= ballMaxY)) {
-            self.ballYSpeed *= -1
-            box.removeFromSuperview()
-            self.boxes.removeAtIndex(index)
+        
+        /// no condition that ball width is larger than box width
+        let xAxisValid = ballMinX <= boxMinX && ballMaxX >= boxMinX || ballMinX >= boxMinX && ballMaxX <= boxMaxX || ballMinX <= boxMaxX && ballMaxX >= boxMaxX
+        /// no condition that ball height is lsrger than box height
+        let yAxisValid = ballMinY <= boxMinY && ballMaxY >= boxMinY || ballMinY >= boxMinY && ballMaxY <= boxMaxY || ballMinY <= boxMaxY && ballMaxY >= boxMaxY
+        
+        if xAxisValid {
+            if yAxisValid {
+                self.ballYSpeed *= -1
+                box.removeFromSuperview()
+                self.boxes.removeAtIndex(index)
+                return true
+            }
+        } else if yAxisValid {
+            if xAxisValid {
+                self.ballXSpeed *= -1
+                box.removeFromSuperview()
+                self.boxes.removeAtIndex(index)
+                return true
+            }
         }
+        
+        return false
     }
     
     private func collisionTestWithBorder(ball: UIView, borderView: UIView) {
@@ -352,6 +563,9 @@ extension BreakBoxMainView {
     }
 }
 
+
+
+// MARK: SETTING VIEW
 /// setting 
 class SettingGUIView: UIView {
     
@@ -416,94 +630,96 @@ class SettingGUIView: UIView {
 
 extension SettingGUIView {
     private func createUI() {
+        func setUpUI() {
+            self.startBtn = UIButton(type: .Custom)
+            self.addSubview(self.startBtn)
+            
+            self.pauseOrResumeBtn = UIButton(type: .Custom)
+            self.addSubview(self.pauseOrResumeBtn)
+            
+            self.durationLabel = UILabel()
+            self.addSubview(self.durationLabel)
+            
+            self.rowLabel = UILabel()
+            self.addSubview(self.rowLabel)
+            
+            self.rowSlider = UISlider()
+            self.addSubview(self.rowSlider)
+            
+            self.columnLabel = UILabel()
+            self.addSubview(self.columnLabel)
+            
+            self.columnSlider = UISlider()
+            self.addSubview(self.columnSlider)
+            
+            self.ballWidthLabel = UILabel()
+            self.addSubview(self.ballWidthLabel)
+            
+            self.ballWidthSlider = UISlider()
+            self.addSubview(self.ballWidthSlider)
+            
+            self.moverWidthLabel = UILabel()
+            self.addSubview(self.moverWidthLabel)
+            
+            self.moverWidthSlider = UISlider()
+            self.addSubview(self.moverWidthSlider)
+            
+        }
+        
+        
+        func layoutUI() {
+            
+            self.rowLabel.frame = CGRect(x: self.startX, y: self.startY, width: self.labelWidth, height: self.labelHeight)
+            setFrameForView(self.rowSlider, reference: self.rowLabel, direction: .horizontal)
+            setFrameForView(self.columnLabel, reference: self.rowLabel, direction: .vertical)
+            setFrameForView(self.columnSlider, reference: self.columnLabel, direction: .horizontal)
+            setFrameForView(self.ballWidthLabel, reference: self.columnLabel, direction: .vertical)
+            setFrameForView(self.ballWidthSlider, reference: self.ballWidthLabel, direction: .horizontal)
+            setFrameForView(self.moverWidthLabel, reference: self.ballWidthLabel, direction: .vertical)
+            setFrameForView(self.moverWidthSlider, reference: self.moverWidthLabel, direction: .horizontal)
+            
+            self.startBtn.frame = CGRect(x: self.btnStartX, y: self.moverWidthLabel.frame.maxY+self.verticalSpace, width: self.btnW, height: self.btnH)
+            
+            self.pauseOrResumeBtn.frame = self.startBtn.frame
+            self.pauseOrResumeBtn.frame.origin.x += (self.btnSpace + self.btnW)
+            
+            self.durationLabel.frame = CGRectZero
+        }
+        
+        
+        func configureUI() {
+            self.rowLabel.backgroundColor = color
+            configureLabel(self.rowLabel, title: "rows:")
+            
+            self.rowSlider.backgroundColor = color
+            configureSlider(self.rowSlider, min: 1, max: 7, defaultValu: 3)
+            
+            self.columnLabel.backgroundColor = color
+            configureLabel(self.columnLabel, title: "columns:")
+            
+            self.columnSlider.backgroundColor = color
+            configureSlider(self.columnSlider, min: 1, max: 10, defaultValu: 5)
+            
+            self.ballWidthLabel.backgroundColor = color
+            configureLabel(self.ballWidthLabel, title: "ballWidth:")
+            
+            self.ballWidthSlider.backgroundColor = color
+            configureSlider(self.ballWidthSlider, min: 3, max: 30, defaultValu: 10)
+            
+            self.moverWidthLabel.backgroundColor = color
+            configureLabel(self.moverWidthLabel, title: "moverWidth:")
+            
+            self.moverWidthSlider.backgroundColor = color
+            configureSlider(self.moverWidthSlider, min: 3, max: 200, defaultValu: 100)
+            
+            self.startBtn.backgroundColor = color
+            self.pauseOrResumeBtn.backgroundColor = color
+            self.durationLabel.backgroundColor = color
+        }
+        
         setUpUI()
         layoutUI()
         configureUI()
-    }
-    
-    private func setUpUI() {
-        self.startBtn = UIButton(type: .Custom)
-        self.addSubview(self.startBtn)
-        
-        self.pauseOrResumeBtn = UIButton(type: .Custom)
-        self.addSubview(self.pauseOrResumeBtn)
-        
-        self.durationLabel = UILabel()
-        self.addSubview(self.durationLabel)
-        
-        self.rowLabel = UILabel()
-        self.addSubview(self.rowLabel)
-        
-        self.rowSlider = UISlider()
-        self.addSubview(self.rowSlider)
-        
-        self.columnLabel = UILabel()
-        self.addSubview(self.columnLabel)
-
-        self.columnSlider = UISlider()
-        self.addSubview(self.columnSlider)
-
-        self.ballWidthLabel = UILabel()
-        self.addSubview(self.ballWidthLabel)
-
-        self.ballWidthSlider = UISlider()
-        self.addSubview(self.ballWidthSlider)
-
-        self.moverWidthLabel = UILabel()
-        self.addSubview(self.moverWidthLabel)
-
-        self.moverWidthSlider = UISlider()
-        self.addSubview(self.moverWidthSlider)
-
-    }
-    
-    private func layoutUI() {
-        
-        self.rowLabel.frame = CGRect(x: self.startX, y: self.startY, width: self.labelWidth, height: self.labelHeight)
-        setFrameForView(self.rowSlider, reference: self.rowLabel, direction: .horizontal)
-        setFrameForView(self.columnLabel, reference: self.rowLabel, direction: .vertical)
-        setFrameForView(self.columnSlider, reference: self.columnLabel, direction: .horizontal)
-        setFrameForView(self.ballWidthLabel, reference: self.columnLabel, direction: .vertical)
-        setFrameForView(self.ballWidthSlider, reference: self.ballWidthLabel, direction: .horizontal)
-        setFrameForView(self.moverWidthLabel, reference: self.ballWidthLabel, direction: .vertical)
-        setFrameForView(self.moverWidthSlider, reference: self.moverWidthLabel, direction: .horizontal)
-        
-        self.startBtn.frame = CGRect(x: self.btnStartX, y: self.moverWidthLabel.frame.maxY+self.verticalSpace, width: self.btnW, height: self.btnH)
-        
-        self.pauseOrResumeBtn.frame = self.startBtn.frame
-        self.pauseOrResumeBtn.frame.origin.x += (self.btnSpace + self.btnW)
-        
-        self.durationLabel.frame = CGRectZero
-    }
-    
-    private func configureUI() {
-        self.rowLabel.backgroundColor = color
-        configureLabel(self.rowLabel, title: "rows:")
-        
-        self.rowSlider.backgroundColor = color
-        configureSlider(self.rowSlider, min: 1, max: 7, defaultValu: 3)
-        
-        self.columnLabel.backgroundColor = color
-        configureLabel(self.columnLabel, title: "columns:")
-        
-        self.columnSlider.backgroundColor = color
-        configureSlider(self.columnSlider, min: 1, max: 10, defaultValu: 5)
-        
-        self.ballWidthLabel.backgroundColor = color
-        configureLabel(self.ballWidthLabel, title: "ballWidth:")
-        
-        self.ballWidthSlider.backgroundColor = color
-        configureSlider(self.ballWidthSlider, min: 3, max: 30, defaultValu: 10)
-        
-        self.moverWidthLabel.backgroundColor = color
-        configureLabel(self.moverWidthLabel, title: "moverWidth:")
-        
-        self.moverWidthSlider.backgroundColor = color
-        configureSlider(self.moverWidthSlider, min: 3, max: 200, defaultValu: 100)
-        
-        self.startBtn.backgroundColor = color
-        self.pauseOrResumeBtn.backgroundColor = color
-        self.durationLabel.backgroundColor = color
     }
 }
 
